@@ -6,4 +6,5 @@
 	url = https://github.com/phdeniel/cthon04
 [submodule "3rdparty/fuser"]
 	path = 3rdparty/fuser
-	url = git@github.com:liaud/fuser.git
+	url = https://github.com/liaud/fuser.git
+
