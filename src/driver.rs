@@ -16,7 +16,7 @@ use self::ino::InoGenerator;
 use self::openfile::{OpenfileHandle, Openfiles};
 use self::pool::ConnectionPool;
 use crate::config::Config;
-use crate::intent::MoveIntent;
+use crate::intent::{IntentStore, MoveIntent};
 use crate::metrics::{TimedOperation, TimedOperationSummary};
 use crate::model::{
     dentries,
@@ -170,6 +170,7 @@ pub(crate) struct Driver {
     pool: Arc<ConnectionPool>,
     openfiles: Arc<Mutex<Openfiles>>,
     dirs: DirDriver,
+    intents: IntentStore,
     metrics: Vec<TimedOperation>,
 }
 
@@ -188,6 +189,7 @@ impl Driver {
         };
 
         let dirs = DirDriver::new(config.clone());
+        let intents = IntentStore::new(config.bucket());
 
         let metrics = (0..TimedOpKind::count())
             .map(|_| TimedOperation::new())
@@ -199,6 +201,7 @@ impl Driver {
             pool,
             openfiles,
             dirs,
+            intents,
             metrics,
         })
     }
@@ -848,13 +851,15 @@ impl Driver {
             .await?;
 
         let entry = parent_entries.get(&name).cloned().ok_or(ENOENT)?;
+        let intent_old_name = NameRef::Exact(Name::new(entry.prefix.to_string(), entry.view));
+        let intent_new_name = NameRef::Exact(new_name.clone().canonicalize(view));
         let move_intent = MoveIntent::new(
             self.config.node_id,
             entry.ino,
             parent_ino,
-            name,
+            &intent_old_name,
             new_parent_ino,
-            new_name,
+            &intent_new_name,
         );
         tracing::info!(
             move_intent = ?move_intent,
@@ -868,6 +873,7 @@ impl Driver {
             new_name = ?&move_intent.new_name,
             "captured move intent"
         );
+        self.intents.put(&mut tx, &move_intent).await?;
 
         let state = RenameState {
             entry: entry.clone(),

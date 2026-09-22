@@ -48,7 +48,7 @@ impl Name {
     }
 }
 
-#[derive(Debug, Clone)]
+#[derive(Debug, Clone, Eq, PartialEq)]
 pub enum NameRef {
     Partial(String),
     Exact(Name),

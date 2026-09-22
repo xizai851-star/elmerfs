@@ -10,6 +10,7 @@ pub enum Ty {
     Page = 3,
     Dir = 4,
     Symlink = 5,
+    MoveIntentSet = 6,
 }
 
 pub struct KeyWriter {
