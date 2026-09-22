@@ -96,3 +96,54 @@ impl Into<RawIdent> for Key {
             .into()
     }
 }
+
+#[cfg(test)]
+mod tests {
+    use super::IntentStore;
+    use crate::key::Bucket;
+    use crate::model::inode::Ino;
+    use crate::time;
+    use crate::view::{Name, NameRef, View};
+    use crate::intent::MoveIntent;
+    use antidotec::Connection;
+
+    #[tokio::test]
+    #[ignore]
+    async fn persists_loads_and_removes_move_intent() -> Result<(), Box<dyn std::error::Error>> {
+        let address = std::env::var("ELMERFS_TEST_ANTIDOTE")
+            .unwrap_or_else(|_| "127.0.0.1:8101".into());
+        let mut connection = Connection::new(&address).await?;
+        let store = IntentStore::new(Bucket::new(u32::MAX));
+
+        let timestamp = time::ts(time::now());
+        let ino = Ino(timestamp.as_secs() ^ ((timestamp.subsec_nanos() as u64) << 32));
+        let intent = MoveIntent::new(
+            u8::MAX,
+            ino,
+            Ino(1),
+            &NameRef::Exact(Name::new("before", View { uid: 1000 })),
+            Ino(2),
+            &NameRef::Exact(Name::new("after", View { uid: 1000 })),
+        );
+
+        let mut tx = connection.transaction().await?;
+        store.put(&mut tx, &intent).await?;
+        tx.commit().await?;
+
+        let mut tx = connection.transaction().await?;
+        let loaded = store.load(&mut tx, ino).await?;
+        tx.commit().await?;
+        assert_eq!(loaded, vec![intent.clone()]);
+
+        let mut tx = connection.transaction().await?;
+        store.remove(&mut tx, &intent).await?;
+        tx.commit().await?;
+
+        let mut tx = connection.transaction().await?;
+        let loaded = store.load(&mut tx, ino).await?;
+        tx.commit().await?;
+        assert!(loaded.is_empty());
+
+        Ok(())
+    }
+}

@@ -501,7 +501,7 @@ mod tests {
         assert_eq!(expected, normalize_slices(&empty, PAGE_SIZE));
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_write_seq() -> Result<()> {
         let mut driver = new_driver();
 
@@ -518,7 +518,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_write_gapped() -> Result<()> {
         let mut driver = new_driver();
 
@@ -535,7 +535,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_overwrite() -> Result<()> {
         let mut driver = new_driver();
 
@@ -559,7 +559,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_write_aligned() -> Result<()> {
         let mut driver = new_driver();
 
@@ -586,7 +586,7 @@ mod tests {
     }
 
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_read_exact() -> Result<()> {
         let mut driver = new_driver();
 
@@ -600,7 +600,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_read_more() -> Result<()> {
         let mut driver = new_driver();
 
@@ -614,7 +614,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_read_unaligned() -> Result<()> {
         let mut driver = new_driver();
 
@@ -629,7 +629,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_read_not_written() -> Result<()> {
         let mut driver = new_driver();
 
@@ -638,7 +638,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_truncate_down() -> Result<()> {
         let mut driver = new_driver();
 
@@ -669,7 +669,7 @@ mod tests {
         Ok(())
     }
 
-    #[async_std::test]
+    #[tokio::test]
     async fn test_truncate_down_on_gapped() -> Result<()> {
         let mut driver = new_driver();
 

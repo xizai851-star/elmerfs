@@ -147,6 +147,22 @@ $ (cd 3rdparty/cthon04 && make all && make copy DESTDIR=$destdir)
 $ cargo test
 ```
 
+### Testing the move intent store
+
+The ignored intent store integration test performs a write, read, removal, and
+final read against an AntidoteDB node. It uses `127.0.0.1:8101` by default:
+
+```bash
+cargo test --lib intent::store::tests::persists_loads_and_removes_move_intent -- --ignored
+```
+
+Set `ELMERFS_TEST_ANTIDOTE` to test another node:
+
+```bash
+ELMERFS_TEST_ANTIDOTE=127.0.0.1:8102 cargo test --lib \
+  intent::store::tests::persists_loads_and_removes_move_intent -- --ignored
+```
+
 ### State of the project
 
 **elmerfs** is still in its early stage, basic fs operation are implemented
