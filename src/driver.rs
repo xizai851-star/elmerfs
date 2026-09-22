@@ -16,6 +16,7 @@ use self::ino::InoGenerator;
 use self::openfile::{OpenfileHandle, Openfiles};
 use self::pool::ConnectionPool;
 use crate::config::Config;
+use crate::intent::MoveIntent;
 use crate::metrics::{TimedOperation, TimedOperationSummary};
 use crate::model::{
     dentries,
@@ -847,6 +848,26 @@ impl Driver {
             .await?;
 
         let entry = parent_entries.get(&name).cloned().ok_or(ENOENT)?;
+        let move_intent = MoveIntent::new(
+            self.config.node_id,
+            entry.ino,
+            parent_ino,
+            name,
+            new_parent_ino,
+            new_name,
+        );
+        tracing::info!(
+            move_intent = ?move_intent,
+            op_id = ?move_intent.op_id,
+            actor = move_intent.actor,
+            timestamp = ?move_intent.timestamp,
+            ino = %move_intent.ino,
+            old_parent = %move_intent.old_parent,
+            old_name = ?&move_intent.old_name,
+            new_parent = %move_intent.new_parent,
+            new_name = ?&move_intent.new_name,
+            "captured move intent"
+        );
 
         let state = RenameState {
             entry: entry.clone(),

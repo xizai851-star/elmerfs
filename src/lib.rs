@@ -2,6 +2,7 @@ mod collections;
 pub mod config;
 mod driver;
 mod fs;
+mod intent;
 mod key;
 mod metrics;
 mod model;
